@@ -63,27 +63,38 @@ async function mostraRegistro() {
   document.getElementById("tabellaRegistro").style.display = snapshot.empty ? "none" : "table";
 }
 // ===== Funzione per esportare la tabella in CSV =====
-function esportaCSV() {
-  const rows = document.querySelectorAll("#tabellaRegistro tr");
-  if (rows.length <= 1) {
-    alert("Nessun dato da esportare");
-    return;
+async function esportaCSV() {
+  try {
+    const snapshot = await db.collection("presenze").get();
+
+    if (snapshot.empty) {
+      alert("Nessun dato da esportare");
+      return;
+    }
+
+    let csv = [];
+    // Intestazione
+    csv.push('"Nome","Cognome","Data","Ora"');
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
+      const dataFormattata = dateObj.toLocaleDateString();
+      const oraFormattata = dateObj.toLocaleTimeString();
+      csv.push(`"${d.nome}","${d.cognome}","${dataFormattata}","${oraFormattata}"`);
+    });
+
+    const csvString = csv.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "registro_completo.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+
+  } catch (err) {
+    console.error("Errore esportazione CSV:", err);
+    alert("Errore esportazione CSV. Controlla console.");
   }
-
-  let csv = [];
-  rows.forEach(row => {
-    const cols = row.querySelectorAll("th, td");
-    const arr = [];
-    cols.forEach(col => arr.push('"' + col.innerText + '"'));
-    csv.push(arr.join(","));
-  });
-
-  const csvString = csv.join("\n");
-  const blob = new Blob([csvString], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "registro.csv";
-  a.click();
-  URL.revokeObjectURL(url);
 }
