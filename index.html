@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro Presenze</title>
+  <style>
+    body { font-family: Arial; max-width: 500px; margin: 30px auto; }
+    input, button { width: 100%; margin: 8px 0; padding: 8px; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Registro Presenze</h1>
+
+  <!-- Sezione firma -->
+  <h2>Segna presenza</h2>
+  <input id="nome" placeholder="Nome">
+  <input id="cognome" placeholder="Cognome">
+  <button onclick="salvaPresenza()">Segna presenza</button>
+
+  <hr>
+
+  <!-- Sezione registro -->
+  <h2>Registro per giorno</h2>
+  <input type="date" id="dataRegistro">
+  <button onclick="mostraRegistro()">Mostra registro</button>
+  <button onclick="esportaCSV()">Esporta CSV</button>
+
+  <table id="tabellaRegistro" style="display:none;">
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Cognome</th>
+      <th>Data</th>
+      <th>Ora</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+  <!-- Firebase e script -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
