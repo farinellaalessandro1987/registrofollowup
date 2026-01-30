@@ -11,19 +11,21 @@ const db = firebase.firestore();
 async function salvaPresenza() {
   const nome = document.getElementById("nome").value.trim();
   const cognome = document.getElementById("cognome").value.trim();
+  const gruppo = document.getElementById("gruppo").value;
 
-  if (!nome || !cognome) {
-    alert("Compila tutti i campi");
-    return;
+  if (!nome || !cognome || !gruppo) {
+  alert("Compila tutti i campi");
+  return;
   }
 
   try {
-    await db.collection("presenze").add({
-      nome,
-      cognome,
-      data: firebase.firestore.Timestamp.fromDate(new Date()),
-      dataStr: new Date().toISOString().split("T")[0]
-    });
+  await db.collection("presenze").add({
+  nome,
+  cognome,
+  gruppo,
+  data: firebase.firestore.Timestamp.fromDate(new Date()),
+  dataStr: new Date().toISOString().split("T")[0]
+});
 
     alert("Presenza registrata");
 
@@ -98,3 +100,4 @@ async function esportaCSV() {
     alert("Errore esportazione CSV. Controlla console.");
   }
 }
+
