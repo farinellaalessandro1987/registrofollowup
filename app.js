@@ -58,6 +58,13 @@ async function mostraRegistro() {
     const dataFormattata = dateObj.toLocaleDateString(); // gg/mm/aaaa
     const oraFormattata = dateObj.toLocaleTimeString();  // hh:mm:ss
     const tr = document.createElement("tr");
+
+if (d.gruppo === "gruppo 9-12") {
+  tr.style.backgroundColor = "#d6f5d6"; // verde chiaro
+}
+if (d.gruppo === "gruppo 13-20") {
+  tr.style.backgroundColor = "#d6ecff"; // azzurro chiaro
+}
     tr.innerHTML = `<td>${d.nome}</td><td>${d.cognome}</td><td>${d.gruppo}</td><td>${dataFormattata}</td><td>${oraFormattata}</td>`;
     tbody.appendChild(tr);
   });
@@ -100,5 +107,6 @@ async function esportaCSV() {
     alert("Errore esportazione CSV. Controlla console.");
   }
 }
+
 
 
