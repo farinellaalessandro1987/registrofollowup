@@ -58,7 +58,7 @@ async function mostraRegistro() {
     const dataFormattata = dateObj.toLocaleDateString(); // gg/mm/aaaa
     const oraFormattata = dateObj.toLocaleTimeString();  // hh:mm:ss
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${d.nome}</td><td>${d.cognome}</td><td>${dataFormattata}</td><td>${oraFormattata}</td>`;
+    tr.innerHTML = `<td>${d.nome}</td><td>${d.cognome}</td><td>${d.gruppo}</td><td>${dataFormattata}</td><td>${oraFormattata}</td>`;
     tbody.appendChild(tr);
   });
 
@@ -76,14 +76,14 @@ async function esportaCSV() {
 
     let csv = [];
     // Intestazione
-    csv.push('"Nome","Cognome","Data","Ora"');
+    csv.push('"Nome","Cognome","Gruppo","Data","Ora"');
 
     snapshot.forEach(doc => {
       const d = doc.data();
       const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
       const dataFormattata = dateObj.toLocaleDateString();
       const oraFormattata = dateObj.toLocaleTimeString();
-      csv.push(`"${d.nome}","${d.cognome}","${dataFormattata}","${oraFormattata}"`);
+      csv.push(`"${d.nome}","${d.cognome}","${d.gruppo}","${dataFormattata}","${oraFormattata}"`);
     });
 
     const csvString = csv.join("\n");
@@ -100,4 +100,5 @@ async function esportaCSV() {
     alert("Errore esportazione CSV. Controlla console.");
   }
 }
+
 
