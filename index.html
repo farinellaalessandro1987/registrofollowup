@@ -85,7 +85,59 @@ th {
   <h2>Registro per giorno</h2>
   <input type="date" id="dataRegistro">
   <button onclick="mostraRegistro()">Mostra registro</button>
-  <button onclick="esportaCSV()">Esporta CSV</button>
+  // ===== Funzione per esportare in Excel con fogli separati per gruppo =====
+async function esportaExcelPerGruppi() {
+  try {
+    const snapshot = await db.collection("presenze").get();
+
+    if (snapshot.empty) {
+      alert("Nessun dato da esportare");
+      return;
+    }
+
+    // 1. Creiamo un oggetto che conterrà i dati suddivisi per gruppo
+    let datiPerGruppo = {};
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
+      const dataFormattata = dateObj.toLocaleDateString();
+      const oraFormattata = dateObj.toLocaleTimeString();
+
+      // Nome del gruppo (puliamo eventuali caratteri strani per usarlo come nome foglio)
+      let gruppoNome = d.gruppo || "Senza Gruppo";
+
+      if (!datiPerGruppo[gruppoNome]) {
+        datiPerGruppo[gruppoNome] = [
+          ["Nome", "Cognome", "Gruppo", "Data", "Ora"] // Intestazione del foglio
+        ];
+      }
+
+      // Aggiungiamo la riga al gruppo corrispondente
+      datiPerGruppo[gruppoNome].push([d.nome, d.cognome, d.gruppo, dataFormattata, oraFormattata]);
+    });
+
+    // 2. Creiamo una nuova cartella di lavoro Excel (Workbook)
+    let wb = XLSX.utils.book_new();
+
+    // 3. Per ogni gruppo, creiamo un foglio (worksheet) dedicato
+    for (let gruppo in datiPerGruppo) {
+      let ws = XLSX.utils.aoa_to_sheet(datiPerGruppo[gruppo]);
+      
+      // I nomi dei fogli in Excel non possono superare i 31 caratteri e non possono contenere certi simboli
+      let nomeFoglioSafe = gruppo.substring(0, 31).replace(/[:\\\/?*\[\]]/g, "_");
+      
+      XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
+    }
+
+    // 4. Salviamo e scarichiamo il file Excel
+    XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
+
+  } catch (err) {
+    console.error("Errore esportazione Excel:", err);
+    alert("Errore durante l'esportazione in Excel. Controlla la console.");
+  }
+}
 
   <table id="tabellaRegistro" style="display:none;">
   <thead>
