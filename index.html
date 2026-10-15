@@ -1,68 +1,71 @@
-zx><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>Registro Presenze</title>
-  <style>
-body {
-  font-family: Arial;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 10px;
-  background: linear-gradient(#f0f8ff, #ffffff);
-  box-sizing: border-box;
-}
   
-}
+  <!-- LIBRERIA PER ESPORTARE IN EXCEL (.xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-h1 {
-  font-size: 34px;
-  text-align: center;
-}
+  <style>
+    body {
+      font-family: Arial;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px;
+      background: linear-gradient(#f0f8ff, #ffffff);
+      box-sizing: border-box;
+    }
 
-h2 {
-  font-size: 28px;
-  margin-top: 20px;
-}
+    h1 {
+      font-size: 34px;
+      text-align: center;
+    }
 
-input, select, button {
-  width: 100%;
-  margin: 6px 0;       /* margine più piccolo */
-  padding: 10px;       /* padding più compatto */
-  font-size: 18px;     /* font leggermente più piccolo */
-  border-radius: 5px;
-  box-sizing: border-box;
-}
+    h2 {
+      font-size: 28px;
+      margin-top: 20px;
+    }
 
-button {
-  background: #66bfff;   
-  color: white;
-  border: none;
-  font-weight: bold;
-}
+    input, select, button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  font-size: 20px;
-}
+    button {
+      background: #66bfff;   
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
 
-th, td {
-  border: 1px solid #000;
-  padding: 10px;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 20px;
+    }
 
-th {
-  background: #ddd;
-}
+    th, td {
+      border: 1px solid #000;
+      padding: 10px;
+    }
+
+    th {
+      background: #ddd;
+    }
+
     #logo {
-  display: block;
-  max-width: 200px;
-  margin: 10px auto 20px auto;
-}
-</style>
+      display: block;
+      max-width: 200px;
+      margin: 10px auto 20px auto;
+    }
+  </style>
 </head>
 <body>
   <h1>Registro Presenze</h1>
@@ -72,11 +75,11 @@ th {
   <input id="nome" placeholder="Nome">
   <input id="cognome" placeholder="Cognome">
   <select id="gruppo">
-  <option value="">Seleziona gruppo</option>
-  <option value="gruppo 9-12">Gruppo 9–12</option>
-  <option value="gruppo 13-20">Gruppo 13–20</option>
-  <option value="gruppo 13-20">Adulti</option>
-</select>
+    <option value="">Seleziona gruppo</option>
+    <option value="gruppo 9-12">Gruppo 9–12</option>
+    <option value="gruppo 13-20">Gruppo 13–20</option>
+    <option value="adulti">Adulti</option> <!-- Corretto il valore duplicato -->
+  </select>
   <button onclick="salvaPresenza()">Segna presenza</button>
 
   <hr>
@@ -86,80 +89,27 @@ th {
   <input type="date" id="dataRegistro">
   <button onclick="mostraRegistro()">Mostra registro</button>
   <button onclick="esportaExcelPerGruppi()">Esporta in Excel (per Gruppi)</button>
-  
-  // ===== Funzione per esportare in Excel con fogli separati per gruppo =====
-async function esportaExcelPerGruppi() {
-  try {
-    const snapshot = await db.collection("presenze").get();
-
-    if (snapshot.empty) {
-      alert("Nessun dato da esportare");
-      return;
-    }
-
-    // 1. Creiamo un oggetto che conterrà i dati suddivisi per gruppo
-    let datiPerGruppo = {};
-
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
-      const dataFormattata = dateObj.toLocaleDateString();
-      const oraFormattata = dateObj.toLocaleTimeString();
-
-      // Nome del gruppo (puliamo eventuali caratteri strani per usarlo come nome foglio)
-      let gruppoNome = d.gruppo || "Senza Gruppo";
-
-      if (!datiPerGruppo[gruppoNome]) {
-        datiPerGruppo[gruppoNome] = [
-          ["Nome", "Cognome", "Gruppo", "Data", "Ora"] // Intestazione del foglio
-        ];
-      }
-
-      // Aggiungiamo la riga al gruppo corrispondente
-      datiPerGruppo[gruppoNome].push([d.nome, d.cognome, d.gruppo, dataFormattata, oraFormattata]);
-    });
-
-    // 2. Creiamo una nuova cartella di lavoro Excel (Workbook)
-    let wb = XLSX.utils.book_new();
-
-    // 3. Per ogni gruppo, creiamo un foglio (worksheet) dedicato
-    for (let gruppo in datiPerGruppo) {
-      let ws = XLSX.utils.aoa_to_sheet(datiPerGruppo[gruppo]);
-      
-      // I nomi dei fogli in Excel non possono superare i 31 caratteri e non possono contenere certi simboli
-      let nomeFoglioSafe = gruppo.substring(0, 31).replace(/[:\\\/?*\[\]]/g, "_");
-      
-      XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
-    }
-
-    // 4. Salviamo e scarichiamo il file Excel
-    XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
-
-  } catch (err) {
-    console.error("Errore esportazione Excel:", err);
-    alert("Errore durante l'esportazione in Excel. Controlla la console.");
-  }
-}
 
   <table id="tabellaRegistro" style="display:none;">
-  <thead>
-    <tr>
-      <th>Nome</th>
-      <th>Cognome</th>
-      <th>Gruppo</th>
-      <th>Data</th>
-      <th>Ora</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th>Gruppo</th>
+        <th>Data</th>
+        <th>Ora</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  <!-- Firebase e script -->
+  <!-- Firebase e script principale -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
