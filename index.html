@@ -109,7 +109,8 @@
   <script src="app.js"></script>
 
   <!-- INCOLLA QUESTA FUNZIONE QUI DIRETTAMENTE NELL'HTML -->
- async function esportaExcelPerGruppi() {
+  <script>
+async function esportaExcelPerGruppi() {
   // 1. Chiedi la password all'utente (sostituisci 'laTuaPassword123' con la password che preferisci)
   const passwordInserita = prompt("Inserisci la password per scaricare il file Excel:");
 
@@ -119,7 +120,7 @@
   }
 
   // 2. Controlla se la password è corretta (puoi cambiarla qui sotto)
-  const passwordSegreta = "08003"; 
+  const passwordSegreta = "laTuaPassword123"; 
 
   if (passwordInserita !== passwordSegreta) {
     alert("Password errata! Accesso negato.");
@@ -190,7 +191,7 @@
     alert("Errore durante l'esportazione. Controlla la console.");
   }
 }
-
+<script>  
 
 
 
