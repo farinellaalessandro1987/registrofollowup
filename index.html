@@ -109,79 +109,87 @@
   <script src="app.js"></script>
 
   <!-- INCOLLA QUESTA FUNZIONE QUI DIRETTAMENTE NELL'HTML -->
-  <script>
-    async function esportaExcelPerGruppi() {
-      console.log("1. Pulsante cliccato, avvio esportazione...");
+ async function esportaExcelPerGruppi() {
+  // 1. Chiedi la password all'utente (sostituisci 'laTuaPassword123' con la password che preferisci)
+  const passwordInserita = prompt("Inserisci la password per scaricare il file Excel:");
 
-      // Controlla se la libreria c'è
-      if (typeof XLSX === 'undefined') {
-        alert("Errore critico: La libreria XLSX non è definita!");
-        return;
-      }
+  // Se l'utente preme "Annulla", blocchiamo tutto
+  if (passwordInserita === null) {
+    return; 
+  }
 
-      try {
-        console.log("2. Tentativo di connessione a Firebase Firestore...");
-        const snapshot = await db.collection("presenze").get();
-        
-        console.log("3. Connessione riuscita! Trovati n° documenti:", snapshot.size);
+  // 2. Controlla se la password è corretta (puoi cambiarla qui sotto)
+  const passwordSegreta = "08003"; 
 
-        if (snapshot.empty) {
-          alert("Il database è vuoto, non ci sono presenze da esportare.");
-          return;
-        }
+  if (passwordInserita !== passwordSegreta) {
+    alert("Password errata! Accesso negato.");
+    return;
+  }
 
-        let datiPerGruppo = {};
+  // 3. Se la password è corretta, procede con l'esportazione normale
+  console.log("Password corretta, avvio esportazione...");
 
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          let dataFormattata = "Data non valida";
-          let oraFormattata = "";
-          
-          if (d.data) {
-            const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
-            if (!isNaN(dateObj)) {
-              dataFormattata = dateObj.toLocaleDateString();
-              oraFormattata = dateObj.toLocaleTimeString();
-            }
-          }
+  if (typeof XLSX === 'undefined') {
+    alert("Errore: La libreria XLSX non è definita!");
+    return;
+  }
 
-          let gruppoNome = d.gruppo ? d.gruppo.trim() : "Senza Gruppo";
+  try {
+    const snapshot = await db.collection("presenze").get();
 
-          if (!datiPerGruppo[gruppoNome]) {
-            datiPerGruppo[gruppoNome] = [
-              ["Nome", "Cognome", "Gruppo", "Data", "Ora"]
-            ];
-          }
-
-          datiPerGruppo[gruppoNome].push([
-            d.nome || "", 
-            d.cognome || "", 
-            d.gruppo || "", 
-            dataFormattata, 
-            oraFormattata
-          ]);
-        });
-
-        console.log("4. Dati organizzati per gruppo:", datiPerGruppo);
-
-        let wb = XLSX.utils.book_new();
-
-        for (let gruppo in datiPerGruppo) {
-          let ws = XLSX.utils.aoa_to_sheet(datiPerGruppo[gruppo]);
-          let nomeFoglioSafe = gruppo.substring(0, 31).replace(/[:\\\/?*\[\]]/g, "_");
-          XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
-        }
-
-        console.log("5. Generazione file e download in corso...");
-        XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
-        console.log("6. Fatto!");
-
-      } catch (err) {
-        console.error("ERRORE CATTURATO:", err);
-        alert("Errore durante l'esportazione. Guarda la console (F12) per i dettagli: " + err.message);
-      }
+    if (snapshot.empty) {
+      alert("Nessun dato presente nel database da esportare.");
+      return;
     }
-  </script>
+
+    let datiPerGruppo = {};
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      let dataFormattata = "Data non valida";
+      let oraFormattata = "";
+      
+      if (d.data) {
+        const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
+        if (!isNaN(dateObj)) {
+          dataFormattata = dateObj.toLocaleDateString();
+          oraFormattata = dateObj.toLocaleTimeString();
+        }
+      }
+
+      let gruppoNome = d.gruppo ? d.gruppo.trim() : "Senza Gruppo";
+
+      if (!datiPerGruppo[gruppoNome]) {
+        datiPerGruppo[gruppoNome] = [
+          ["Nome", "Cognome", "Gruppo", "Data", "Ora"]
+        ];
+      }
+
+      datiPerGruppo[gruppoNome].push([
+        d.nome || "", 
+        d.cognome || "", 
+        d.gruppo || "", 
+        dataFormattata, 
+        oraFormattata
+      ]);
+    });
+
+    let wb = XLSX.utils.book_new();
+
+    for (let gruppo in datiPerGruppo) {
+      let ws = XLSX.utils.aoa_to_sheet(datiPerGruppo[gruppo]);
+      let nomeFoglioSafe = gruppo.substring(0, 31).replace(/[:\\\/?*\[\]]/g, "_");
+      XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
+    }
+
+    XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
+    alert("File Excel scaricato con successo!");
+
+  } catch (err) {
+    console.error("Errore esportazione Excel:", err);
+    alert("Errore durante l'esportazione. Controlla la console.");
+  }
+}
 
 
 
