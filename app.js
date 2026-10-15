@@ -107,6 +107,83 @@ async function esportaCSV() {
     alert("Errore esportazione CSV. Controlla console.");
   }
 }
+// ===== Funzione per esportare in Excel con Password e Gruppi =====
+async function esportaExcelPerGruppi() {
+  // 1. Chiedi la password (cambia "laTuaPassword123" con quella che preferisci)
+  const passwordInserita = prompt("Inserisci la password per scaricare il file Excel:");
+  
+  if (passwordInserita === null) {
+    return; // L'utente ha cliccato su Annulla
+  }
 
+  const passwordSegreta = "laTuaPassword123"; 
+
+  if (passwordInserita !== passwordSegreta) {
+    alert("Password errata! Accesso negato.");
+    return;
+  }
+
+  // 2. Verifica che la libreria XLSX sia presente
+  if (typeof XLSX === 'undefined') {
+    alert("Errore: La libreria Excel non è caricata!");
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("presenze").get();
+
+    if (snapshot.empty) {
+      alert("Nessun dato presente nel database da esportare.");
+      return;
+    }
+
+    let datiPerGruppo = {};
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      let dataFormattata = "Data non valida";
+      let oraFormattata = "";
+      
+      if (d.data) {
+        const dateObj = d.data.toDate ? d.data.toDate() : new Date(d.data);
+        if (!isNaN(dateObj)) {
+          dataFormattata = dateObj.toLocaleDateString();
+          oraFormattata = dateObj.toLocaleTimeString();
+        }
+      }
+
+      let gruppoNome = d.gruppo ? d.gruppo.trim() : "Senza Gruppo";
+
+      if (!datiPerGruppo[gruppoNome]) {
+        datiPerGruppo[gruppoNome] = [
+          ["Nome", "Cognome", "Gruppo", "Data", "Ora"]
+        ];
+      }
+
+      datiPerGruppo[gruppoNome].push([
+        d.nome || "", 
+        d.cognome || "", 
+        d.gruppo || "", 
+        dataFormattata, 
+        oraFormattata
+      ]);
+    });
+
+    let wb = XLSX.utils.book_new();
+
+    for (let gruppo in datiPerGruppo) {
+      let ws = XLSX.utils.aoa_to_sheet(datiPerGruppo[gruppo]);
+      let nomeFoglioSafe = gruppo.substring(0, 31).replace(/[:\\\/?*\[\]]/g, "_");
+      XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
+    }
+
+    XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
+    alert("File Excel scaricato con successo!");
+
+  } catch (err) {
+    console.error("Errore esportazione Excel:", err);
+    alert("Errore durante l'esportazione. Controlla la console.");
+  }
+}
 
 
