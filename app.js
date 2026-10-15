@@ -116,7 +116,7 @@ async function esportaExcelPerGruppi() {
     return; // L'utente ha cliccato su Annulla
   }
 
-  const passwordSegreta = "laTuaPassword123"; 
+  const passwordSegreta = "08003"; 
 
   if (passwordInserita !== passwordSegreta) {
     alert("Password errata! Accesso negato.");
