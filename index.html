@@ -111,18 +111,22 @@
   <!-- INCOLLA QUESTA FUNZIONE QUI DIRETTAMENTE NELL'HTML -->
   <script>
     async function esportaExcelPerGruppi() {
-      console.log("Pulsante Excel cliccato!");
+      console.log("1. Pulsante cliccato, avvio esportazione...");
 
+      // Controlla se la libreria c'è
       if (typeof XLSX === 'undefined') {
-        alert("Errore: La libreria Excel non è stata caricata!");
+        alert("Errore critico: La libreria XLSX non è definita!");
         return;
       }
 
       try {
+        console.log("2. Tentativo di connessione a Firebase Firestore...");
         const snapshot = await db.collection("presenze").get();
+        
+        console.log("3. Connessione riuscita! Trovati n° documenti:", snapshot.size);
 
         if (snapshot.empty) {
-          alert("Nessun dato presente nel database da esportare.");
+          alert("Il database è vuoto, non ci sono presenze da esportare.");
           return;
         }
 
@@ -158,6 +162,8 @@
           ]);
         });
 
+        console.log("4. Dati organizzati per gruppo:", datiPerGruppo);
+
         let wb = XLSX.utils.book_new();
 
         for (let gruppo in datiPerGruppo) {
@@ -166,18 +172,16 @@
           XLSX.utils.book_append_sheet(wb, ws, nomeFoglioSafe);
         }
 
+        console.log("5. Generazione file e download in corso...");
         XLSX.writeFile(wb, "registro_presenze_per_gruppi.xlsx");
+        console.log("6. Fatto!");
 
       } catch (err) {
-        console.error("Errore esportazione Excel:", err);
-        alert("Errore durante l'esportazione. Controlla la console.");
+        console.error("ERRORE CATTURATO:", err);
+        alert("Errore durante l'esportazione. Guarda la console (F12) per i dettagli: " + err.message);
       }
     }
   </script>
-
-</body>
-</html>
-
 
 
 
